@@ -3,17 +3,21 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/blueprintsdb
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
   profiles:
-    active: postgres,identity
+    active: identity
   security:
     oauth2:
       resourceserver:
