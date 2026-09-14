@@ -6,6 +6,8 @@ import co.edu.eci.blueprints.model.Point;
 import co.edu.eci.blueprints.persistence.BlueprintNotFoundException;
 import co.edu.eci.blueprints.persistence.BlueprintPersistenceException;
 import co.edu.eci.blueprints.services.BlueprintsServices;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
@@ -31,12 +33,25 @@ public class BlueprintsAPIController {
         this.services = services;
     }
 
+    @Operation(summary = "Obtener todos los blueprints", security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-jwt"))
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.read")
+    })
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_blueprints.read')")
     public ResponseEntity<ApiResponse<Set<Blueprint>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok(services.getAllBlueprints()));
     }
 
+    @Operation(summary = "Obtener blueprints por autor")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.read"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Autor sin blueprints registrados")
+    })
     @GetMapping("/{author}")
     @PreAuthorize("hasAuthority('SCOPE_blueprints.read')")
     public ResponseEntity<ApiResponse<Set<Blueprint>>> byAuthor(@PathVariable String author)
@@ -44,6 +59,13 @@ public class BlueprintsAPIController {
         return ResponseEntity.ok(ApiResponse.ok(services.getBlueprintsByAuthor(author)));
     }
 
+    @Operation(summary = "Obtener un blueprint por autor y nombre")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.read"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Blueprint no encontrado")
+    })
     @GetMapping("/{author}/{name}")
     @PreAuthorize("hasAuthority('SCOPE_blueprints.read')")
     public ResponseEntity<ApiResponse<Blueprint>> byAuthorAndName(
@@ -51,6 +73,13 @@ public class BlueprintsAPIController {
         return ResponseEntity.ok(ApiResponse.ok(services.getBlueprint(author, name)));
     }
 
+    @Operation(summary = "Crear un nuevo blueprint")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Blueprint creado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Datos inválidos o blueprint duplicado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.write")
+    })
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_blueprints.write')")
     public ResponseEntity<ApiResponse<Blueprint>> add(@Valid @RequestBody NewBlueprintRequest request)
@@ -60,6 +89,13 @@ public class BlueprintsAPIController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(blueprint));
     }
 
+    @Operation(summary = "Agregar un punto a un blueprint existente")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "202", description = "Actualización aceptada"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.write"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Blueprint no encontrado")
+    })
     @PutMapping("/{author}/{name}/points")
     @PreAuthorize("hasAuthority('SCOPE_blueprints.write')")
     public ResponseEntity<ApiResponse<Void>> addPoint(

@@ -2,6 +2,8 @@ package co.edu.eci.blueprints.auth;
 
 import co.edu.eci.blueprints.security.InMemoryUserService;
 import co.edu.eci.blueprints.security.RsaKeyProperties;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,14 @@ public class AuthController {
     public record LoginRequest(String username, String password) {}
     public record TokenResponse(String access_token, String token_type, long expires_in) {}
 
+    @Operation(summary = "Login y emisión de token JWT",
+            description = "Valida las credenciales del usuario y emite un JWT firmado con RS256, " +
+                    "incluyendo en el claim 'scope' los permisos del usuario " +
+                    "(blueprints.read y/o blueprints.write).")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Login exitoso, retorna el access_token"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Credenciales inválidas")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         if (!userService.isValid(req.username(), req.password())) {
@@ -36,7 +46,7 @@ public class AuthController {
         long ttl = props.tokenTtlSeconds() != null ? props.tokenTtlSeconds() : 3600;
         Instant exp = now.plusSeconds(ttl);
 
-        String scope = "blueprints.read blueprints.write";
+        String scope = String.join(" ", userService.getScopes(req.username()));
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(props.issuer())
