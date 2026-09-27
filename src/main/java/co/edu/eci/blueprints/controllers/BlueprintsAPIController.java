@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.DeleteMapping;
 import java.util.List;
 import java.util.Set;
 
@@ -109,5 +109,19 @@ public class BlueprintsAPIController {
             @NotBlank String author,
             @NotBlank String name,
             @Valid List<Point> points) {
+    }
+    @Operation(summary = "Eliminar un blueprint")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Blueprint eliminado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token ausente, inválido o expirado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Token válido pero sin el scope blueprints.write"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Blueprint no encontrado")
+    })
+    @DeleteMapping("/{author}/{name}")
+    @PreAuthorize("hasAuthority('SCOPE_blueprints.write')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String author, @PathVariable String name)
+            throws BlueprintNotFoundException {
+        services.deleteBlueprint(author, name);
+        return ResponseEntity.ok(ApiResponse.of(200, "blueprint deleted", null));
     }
 }

@@ -22,6 +22,9 @@ public class BlueprintsServices {
     public void addNewBlueprint(Blueprint blueprint) throws BlueprintPersistenceException {
         persistence.saveBlueprint(blueprint);
     }
+    public void deleteBlueprint(String author, String name) throws BlueprintNotFoundException {
+        persistence.deleteBlueprint(author, name);
+    }
 
     public Set<Blueprint> getAllBlueprints() {
         return persistence.getAllBlueprints();
